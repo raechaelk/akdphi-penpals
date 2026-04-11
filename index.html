@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pen Pals · alpha Kappa Delta Phi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Open+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple:       #6b3fa0;
+      --purple-dark:  #5c3489;
+      --purple-deep:  #3a2452;
+      --purple-mid:   #9b72cf;
+      --purple-soft:  #c9b8e8;
+      --purple-pale:  #e8dff4;
+      --purple-ghost: #f3eeff;
+      --purple-faint: #faf7ff;
+      --purple-muted: #9b8ab4;
+      --purple-hint:  #c4b4dc;
+      --cream:        #f8f5f2;
+      --white:        #ffffff;
+      --text-dark:    #3a2452;
+      --text-mid:     #5a4a72;
+      --text-light:   #6b5a85;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--cream);
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    /* subtle paper texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(155,114,207,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(107,63,160,0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    /* ── STAGES ── */
+    .stage { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 480px; }
+    .stage.active { display: flex; }
+
+    /* ── INTRO ── */
+    #intro-stage { gap: 0; }
+
+    .mailbox-wrap { width: 180px; height: 180px; margin: 0 auto; }
+
+    .intro-eyebrow {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 12px;
+      color: var(--purple-muted);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 1.25rem;
+    }
+
+    .intro-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 56px;
+      font-weight: 500;
+      color: var(--purple-deep);
+      text-align: center;
+      line-height: 1;
+      margin-top: 0.15rem;
+    }
+
+    .intro-divider {
+      width: 48px;
+      height: 1px;
+      background: var(--purple-soft);
+      margin: 1rem auto;
+    }
+
+    .intro-sub {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--purple-muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .intro-cta-wrap {
+      margin-top: 2.25rem;
+      width: 100%;
+      max-width: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--purple);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      padding: 15px 40px;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 18px;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--purple-dark); transform: scale(1.02); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .cta-hint {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--purple-hint);
+      letter-spacing: 1px;
+      text-align: center;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+    /* ── LOOKUP ── */
+    #lookup-stage { gap: 0; }
+
+    .lookup-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 400;
+      color: var(--purple-deep);
+      text-align: center;
+      line-height: 1.2;
+    }
+    .lookup-heading em { font-style: italic; color: var(--purple); }
+
+    .lookup-sub {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--purple-muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 8px;
+      margin-bottom: 2rem;
+    }
+
+    .lookup-card {
+      background: var(--white);
+      border: 0.5px solid var(--purple-soft);
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%;
+    }
+
+    .field-label {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 15px;
+      color: var(--text-light);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 0.5px solid var(--purple-soft);
+      border-radius: 12px;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 14px;
+      color: var(--purple-deep);
+      background: var(--purple-faint);
+      outline: none;
+      display: block;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field-input:focus {
+      border-color: var(--purple-mid);
+      box-shadow: 0 0 0 3px rgba(155,114,207,0.12);
+    }
+
+    .error-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 13px;
+      color: #993333;
+      text-align: center;
+      margin-top: 8px;
+      display: none;
+    }
+
+    /* ── ENVELOPE ── */
+    #envelope-stage { gap: 1.5rem; }
+
+    .env-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--purple-deep);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .env-heading em { font-style: italic; color: var(--purple); }
+
+    .envelope-wrap {
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      display: block;
+      width: 320px;
+    }
+    .envelope-wrap:hover { transform: scale(1.04) translateY(-6px); }
+    .envelope-wrap:active { transform: scale(0.98); }
+
+    .env-hint {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--purple-hint);
+      text-align: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    /* ── CARD ── */
+    #card-stage { gap: 1rem; }
+
+    .postcard {
+      width: 100%;
+      border-radius: 20px;
+      border: 0.5px solid var(--purple-soft);
+      background: var(--white);
+      overflow: hidden;
+      animation: reveal 0.7s cubic-bezier(0.23,1,0.32,1) forwards;
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(32px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card-header {
+      background: var(--purple);
+      padding: 2rem 1.75rem 3rem;
+      position: relative;
+    }
+
+    .card-eyebrow {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+    }
+
+    .card-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 500;
+      color: var(--white);
+      line-height: 1.1;
+    }
+    .card-name em { font-style: italic; font-weight: 400; }
+
+    .card-role {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.65);
+      margin-top: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    .card-avatar {
+      position: absolute;
+      right: 1.75rem;
+      bottom: -30px;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      border: 3px solid var(--white);
+      background: var(--purple-pale);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--purple);
+      overflow: hidden;
+    }
+
+    .card-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-body { padding: 2.75rem 1.75rem 1rem; }
+
+    .card-message {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--text-mid);
+      line-height: 1.8;
+      border-left: 2px solid var(--purple-soft);
+      padding-left: 14px;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-label {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--purple-hint);
+      margin-bottom: 8px;
+    }
+
+    .compat-box {
+      background: var(--purple-faint);
+      border: 0.5px solid #e2d8f0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 1.5rem;
+    }
+    .compat-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--purple);
+      line-height: 1.6;
+    }
+
+    .interests-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 1.5rem;
+    }
+    .interest-tag {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      background: var(--purple-ghost);
+      color: var(--purple);
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 0.5px solid var(--purple-soft);
+    }
+
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 1.5rem;
+    }
+    .contact-row {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--text-mid);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .contact-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--purple-mid);
+      flex-shrink: 0;
+    }
+
+    .card-footer {
+      border-top: 0.5px dashed #e2d8f0;
+      padding: 12px 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-crossed {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 12px;
+      color: var(--purple-hint);
+    }
+
+    .btn-outline {
+      width: 100%;
+      background: var(--white);
+      border: 1.5px solid var(--purple);
+      color: var(--purple);
+      border-radius: 50px;
+      padding: 14px;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 17px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: block;
+      letter-spacing: 0.3px;
+    }
+    .btn-outline:hover { background: var(--purple); color: var(--white); }
+
+    .reset-link {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--purple-hint);
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-top: 4px;
+      display: block;
+    }
+    .reset-link:hover { color: var(--purple); }
+
+    /* ── GEM SVG util ── */
+    .gem { overflow: visible; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* mobile */
+    @media (max-width: 480px) {
+      .intro-title { font-size: 44px; }
+      .envelope-wrap { width: 280px; }
+      .card-name { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ INTRO ══ -->
+  <div id="intro-stage" class="stage active">
+    <div class="mailbox-wrap">
+      <svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+        <!-- falling letter -->
+        <g id="letter-fly" style="opacity:0; transform:translateY(-70px)">
+          <rect x="62" y="2" width="56" height="38" rx="3" fill="white" stroke="#c9b8e8" stroke-width="1.2"/>
+          <polyline points="62,2 90,24 118,2" fill="none" stroke="#d8cfe8" stroke-width="1"/>
+        </g>
+        <!-- post -->
+        <rect x="81" y="128" width="12" height="48" rx="3" fill="#c9b8e8"/>
+        <!-- mailbox body -->
+        <g id="mbx-body">
+          <rect x="28" y="76" width="120" height="58" rx="10" fill="#6b3fa0"/>
+          <rect x="28" y="76" width="120" height="29" rx="10" fill="#5c3489"/>
+          <!-- slot -->
+          <rect x="54" y="98" width="50" height="22" rx="4" fill="#4a2875"/>
+          <rect x="60" y="104" width="38" height="12" rx="2" fill="#3a1f5e"/>
+          <!-- flag -->
+          <g id="flag-g">
+            <rect x="132" y="70" width="5" height="24" rx="1.5" fill="#c9b8e8"/>
+            <rect x="137" y="70" width="18" height="12" rx="2" fill="#e8dff4"/>
+          </g>
+        </g>
+        <!-- badge circle -->
+        <circle cx="90" cy="48" r="24" fill="#f3eeff" stroke="#d8cfe8" stroke-width="1"/>
+        <!-- akdPhi gem in badge -->
+        <g transform="translate(90,48)">
+          <polygon points="0,-15 14,-5 14,7 0,17 -14,7 -14,-5" fill="none" stroke="#6b3fa0" stroke-width="1.8"/>
+          <line x1="-14" y1="-5" x2="14" y2="-5" stroke="#6b3fa0" stroke-width="1.1"/>
+          <line x1="-14" y1="-5" x2="0" y2="-10" stroke="#6b3fa0" stroke-width="0.9"/>
+          <line x1="14" y1="-5" x2="0" y2="-10" stroke="#6b3fa0" stroke-width="0.9"/>
+          <line x1="0" y1="-10" x2="0" y2="17" stroke="#6b3fa0" stroke-width="0.9"/>
+          <line x1="-14" y1="-5" x2="0" y2="4" stroke="#6b3fa0" stroke-width="0.7"/>
+          <line x1="14" y1="-5" x2="0" y2="4" stroke="#6b3fa0" stroke-width="0.7"/>
+          <line x1="-14" y1="7" x2="0" y2="4" stroke="#6b3fa0" stroke-width="0.7"/>
+          <line x1="14" y1="7" x2="0" y2="4" stroke="#6b3fa0" stroke-width="0.7"/>
+          <polygon points="0,-10 14,-5 0,-5" fill="#6b3fa0" opacity="0.14"/>
+          <polygon points="0,-10 -14,-5 0,-5" fill="#6b3fa0" opacity="0.07"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="intro-eyebrow">alpha Kappa Delta Phi</div>
+    <div class="intro-title">Pen Pals</div>
+    <div class="intro-divider"></div>
+    <div class="intro-sub">timeless friendship through sisterhood &nbsp;·&nbsp; est 1995</div>
+
+    <div class="intro-cta-wrap">
+      <button class="btn-primary" id="intro-btn">Find my match →</button>
+      <div class="cta-hint">click above to get started</div>
+    </div>
+  </div>
+
+  <!-- ══ LOOKUP ══ -->
+  <div id="lookup-stage" class="stage">
+    <div class="lookup-heading">Who's waiting<br>for <em>you?</em></div>
+    <div class="lookup-sub">enter your email to reveal your match</div>
+    <div class="lookup-card">
+      <label class="field-label" for="email-input">Your email address</label>
+      <input class="field-input" type="email" id="email-input" placeholder="your@email.com" autocomplete="email"/>
+      <div class="error-text" id="error-msg">We couldn't find that email — double check and try again.</div>
+      <button class="btn-primary" id="lookup-btn" style="margin-top:12px; border-radius:12px; padding:13px;">Reveal my match</button>
+    </div>
+  </div>
+
+  <!-- ══ ENVELOPE ══ -->
+  <div id="envelope-stage" class="stage">
+    <div class="env-heading">A letter has arrived,<br><em>just for you.</em></div>
+    <div class="envelope-wrap" id="env-wrap">
+      <svg width="320" height="215" viewBox="0 0 320 215" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="318" height="213" rx="8" fill="white" stroke="#c9b8e8" stroke-width="1.5"/>
+        <line x1="1" y1="1" x2="160" y2="116" stroke="#ece6f5" stroke-width="1"/>
+        <line x1="319" y1="1" x2="160" y2="116" stroke="#ece6f5" stroke-width="1"/>
+        <line x1="1" y1="213" x2="110" y2="128" stroke="#ece6f5" stroke-width="0.8"/>
+        <line x1="319" y1="213" x2="210" y2="128" stroke="#ece6f5" stroke-width="0.8"/>
+        <polygon points="1,1 319,1 160,120" fill="#f3eeff" stroke="#d8cfe8" stroke-width="1"/>
+        <!-- gem wax seal -->
+        <circle cx="160" cy="112" r="19" fill="white" stroke="#c9b8e8" stroke-width="1.2"/>
+        <g transform="translate(160,112)">
+          <polygon points="0,-12 11,-4 11,6 0,14 -11,6 -11,-4" fill="none" stroke="#6b3fa0" stroke-width="1.5"/>
+          <line x1="-11" y1="-4" x2="11" y2="-4" stroke="#6b3fa0" stroke-width="1"/>
+          <line x1="-11" y1="-4" x2="0" y2="-8" stroke="#6b3fa0" stroke-width="0.8"/>
+          <line x1="11" y1="-4" x2="0" y2="-8" stroke="#6b3fa0" stroke-width="0.8"/>
+          <line x1="0" y1="-8" x2="0" y2="14" stroke="#6b3fa0" stroke-width="0.8"/>
+          <line x1="-11" y1="-4" x2="0" y2="3" stroke="#6b3fa0" stroke-width="0.6"/>
+          <line x1="11" y1="-4" x2="0" y2="3" stroke="#6b3fa0" stroke-width="0.6"/>
+          <line x1="-11" y1="6" x2="0" y2="3" stroke="#6b3fa0" stroke-width="0.6"/>
+          <line x1="11" y1="6" x2="0" y2="3" stroke="#6b3fa0" stroke-width="0.6"/>
+          <polygon points="0,-8 11,-4 0,-4" fill="#6b3fa0" opacity="0.13"/>
+          <polygon points="0,-8 -11,-4 0,-4" fill="#6b3fa0" opacity="0.07"/>
+        </g>
+        <text x="160" y="182" text-anchor="middle" font-size="12" fill="#b8a8d0" font-family="Georgia,serif" font-style="italic">click to open</text>
+      </svg>
+    </div>
+    <div class="env-hint">your match is sealed inside</div>
+  </div>
+
+  <!-- ══ CARD ══ -->
+  <div id="card-stage" class="stage">
+    <div class="postcard">
+      <div class="card-header">
+        <div class="card-eyebrow">Your pen pal</div>
+        <div class="card-name" id="c-name"></div>
+        <div class="card-role" id="c-role"></div>
+        <div class="card-avatar" id="c-avatar"></div>
+      </div>
+      <div class="card-body">
+        <div class="card-message" id="c-message"></div>
+
+        <div class="section-label">Why you're matched</div>
+        <div class="compat-box">
+          <div class="compat-text" id="c-compat"></div>
+        </div>
+
+        <div class="section-label">Interests</div>
+        <div class="interests-list" id="c-interests"></div>
+
+        <div class="section-label">Reach out</div>
+        <div class="contact-list" id="c-contact"></div>
+      </div>
+      <div class="card-footer">
+        <div class="footer-crossed" id="c-crossed"></div>
+        <svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0">
+          <polygon points="11,1 19,7 19,17 11,22 3,17 3,7" fill="none" stroke="#c4b4dc" stroke-width="1.3"/>
+          <line x1="3" y1="7" x2="19" y2="7" stroke="#c4b4dc" stroke-width="0.9"/>
+          <line x1="3" y1="7" x2="11" y2="4" stroke="#c4b4dc" stroke-width="0.7"/>
+          <line x1="19" y1="7" x2="11" y2="4" stroke="#c4b4dc" stroke-width="0.7"/>
+          <line x1="11" y1="4" x2="11" y2="22" stroke="#c4b4dc" stroke-width="0.7"/>
+          <line x1="3" y1="7" x2="11" y2="12" stroke="#c4b4dc" stroke-width="0.6"/>
+          <line x1="19" y1="7" x2="11" y2="12" stroke="#c4b4dc" stroke-width="0.6"/>
+          <line x1="3" y1="17" x2="11" y2="12" stroke="#c4b4dc" stroke-width="0.6"/>
+          <line x1="19" y1="17" x2="11" y2="12" stroke="#c4b4dc" stroke-width="0.6"/>
+        </svg>
+      </div>
+    </div>
+
+    <button class="btn-outline" id="copy-btn">Copy your intro message ✉</button>
+    <button class="reset-link" id="reset-btn">look up a different email</button>
+  </div>
+
+</div>
+<script>
+  /* ══════════════════════════════════════════════
+     MATCH DATA — replace this with your real CSV data
+     Each key is the person's email (lowercase)
+     active_name / alum_name etc from your Colab output
+  ══════════════════════════════════════════════ */
+  var MATCHES = {
+    "nia@email.com": {
+      match_name: "Alexis <em>Carter</em>",
+      match_role: "Alum · SP19 · Brand Manager at Nike",
+      match_crossed: "Crossed SP19",
+      match_initials: "AC",
+      match_photo: "",
+      match_message: "Can't wait to connect with you — so happy this program exists!",
+      compat_note: "You're both low-key creatives who love fashion and want a real friendship — no agenda needed.",
+      interests: ["Fashion", "Travel", "Reality TV", "Cooking / Baking"],
+      contact: ["Instagram: @alexiscarter", "Email: alexis@email.com"],
+      intro: "Hey Alexis! I'm Nia, your akdPhi pen pal \uD83D\uDC8C So excited to be matched with you — I love that you're in brand management, I'm a marketing major and would love to hear about your journey!"
+    },
+    "zara@email.com": {
+      match_name: "Dr. Keisha <em>Brown</em>",
+      match_role: "Alum · FA15 · Physician",
+      match_crossed: "Crossed FA15",
+      match_initials: "KB",
+      match_photo: "",
+      match_message: "Hello! So happy this program exists.",
+      compat_note: "Two wellness-driven women with a passion for reading and making real change — you'll have so much to talk about.",
+      interests: ["Reading", "Health", "Activism & Social Justice", "Writing / Journaling"],
+      contact: ["Email: keisha@email.com", "Text: 555-0004"],
+      intro: "Hi Dr. Brown! I'm Zara, your akdPhi pen pal \uD83D\uDC8C I'm pre-med and so inspired to be matched with a physician — I'd love to hear about your path!"
+    },
+    "maya@email.com": {
+      match_name: "Priya <em>Patel</em>",
+      match_role: "Alum · SP21 · UX Designer at Google",
+      match_crossed: "Crossed SP21",
+      match_initials: "PP",
+      match_photo: "",
+      match_message: "Hey! Looking forward to this.",
+      compat_note: "CS meets design — you're both creatives who love art, anime, and building cool things.",
+      interests: ["Art", "Music (listening)", "Gaming", "Anime"],
+      contact: ["Instagram: @priyaux"],
+      intro: "Hey Priya! I'm Maya, your akdPhi pen pal \uD83D\uDC8C CS major here obsessed with gaming and anime — so excited we got matched!"
+    }
+  };
+
+  /* ── stage switching ── */
+  function show(id) {
+    ['intro-stage','lookup-stage','envelope-stage','card-stage'].forEach(function(s) {
+      document.getElementById(s).classList.remove('active');
+    });
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ── mailbox animation ── */
+  window.addEventListener('load', function() {
+    var letter = document.getElementById('letter-fly');
+    var pos = -70, op = 0;
+    var drop = setInterval(function() {
+      pos += 5; op = Math.min(1, op + 0.07);
+      letter.style.transform = 'translateY(' + pos + 'px)';
+      letter.style.opacity = op;
+      if (pos >= 20) {
+        clearInterval(drop);
+        var body = document.getElementById('mbx-body');
+        var s = 0, dir = 1;
+        var shake = setInterval(function() {
+          s++;
+          body.setAttribute('transform', 'translate(' + (dir * 3) + ',0)');
+          dir *= -1;
+          if (s > 8) { clearInterval(shake); body.setAttribute('transform', ''); }
+        }, 50);
+        setTimeout(function() {
+          var flag = document.getElementById('flag-g');
+          var angle = 0;
+          var raise = setInterval(function() {
+            angle -= 4;
+            flag.setAttribute('transform', 'rotate(' + angle + ',137,82)');
+            if (angle <= -78) clearInterval(raise);
+          }, 16);
+        }, 500);
+      }
+    }, 16);
+  });
+
+  /* ── button events ── */
+  document.getElementById('intro-btn').addEventListener('click', function() {
+    show('lookup-stage');
+    setTimeout(function() { document.getElementById('email-input').focus(); }, 100);
+  });
+
+  document.getElementById('lookup-btn').addEventListener('click', function() {
+    var email = document.getElementById('email-input').value.trim().toLowerCase();
+    var err = document.getElementById('error-msg');
+    if (MATCHES[email]) {
+      err.style.display = 'none';
+      show('envelope-stage');
+    } else {
+      err.style.display = 'block';
+    }
+  });
+
+  document.getElementById('email-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('lookup-btn').click();
+  });
+
+  document.getElementById('env-wrap').addEventListener('click', function() {
+    var email = document.getElementById('email-input').value.trim().toLowerCase();
+    var m = MATCHES[email];
+    if (!m) return;
+
+    document.getElementById('c-name').innerHTML = m.match_name;
+    document.getElementById('c-role').textContent = m.match_role;
+    document.getElementById('c-crossed').textContent = m.match_crossed;
+    document.getElementById('c-message').textContent = '\u201c' + m.match_message + '\u201d';
+    document.getElementById('c-compat').textContent = m.compat_note;
+
+    var av = document.getElementById('c-avatar');
+    if (m.match_photo) {
+      av.innerHTML = '<img src="' + m.match_photo + '" alt="' + m.match_initials + '"/>';
+    } else {
+      av.textContent = m.match_initials;
+    }
+
+    var il = document.getElementById('c-interests');
+    il.innerHTML = '';
+    m.interests.forEach(function(i) {
+      var t = document.createElement('span');
+      t.className = 'interest-tag';
+      t.textContent = i;
+      il.appendChild(t);
+    });
+
+    var cl = document.getElementById('c-contact');
+    cl.innerHTML = '';
+    m.contact.forEach(function(c) {
+      var r = document.createElement('div');
+      r.className = 'contact-row';
+      r.innerHTML = '<div class="contact-dot"></div>' + c;
+      cl.appendChild(r);
+    });
+
+    window._currentIntro = m.intro;
+    show('card-stage');
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', function() {
+    if (!window._currentIntro) return;
+    var btn = this;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window._currentIntro).then(function() {
+        btn.textContent = 'Copied — go say hi \u2713';
+        setTimeout(function() { btn.textContent = 'Copy your intro message \u2709'; }, 2500);
+      });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = window._currentIntro;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = 'Copied — go say hi \u2713';
+      setTimeout(function() { btn.textContent = 'Copy your intro message \u2709'; }, 2500);
+    }
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', function() {
+    document.getElementById('email-input').value = '';
+    show('intro-stage');
+  });
+</script>
+</body>
+</html>
